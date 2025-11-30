@@ -1,20 +1,28 @@
 {
-  "name": "express-mongo-cli",
+  "name": "create-bun-express-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "A CLI to scaffold a Bun + Express project",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "mycli": "./index.js"
+    "create-bun-express-app": "./index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "bun",
+    "express",
+    "scaffold",
+    "create-app"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Raj Mane",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
-    "inquirer": "^13.0.1",
+    "@inquirer/prompts": "^8.0.1",
     "unzipper": "^0.12.3"
   }
 }
