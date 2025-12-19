@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './db/connectDB';
 import cookieParser from 'cookie-parser';
-import V1Router from './routes/v1/route';
+import V1Router from './routes/v1';
 import session from 'express-session';
 
 dotenv.config();
