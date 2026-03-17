@@ -2,12 +2,14 @@
 
 import { select, input } from "@inquirer/prompts";
 import unzipper from "unzipper";
+import degit from "degit";
 import fs from "fs";
 import path from "path";
 import { Readable } from "stream";
 import { execSync } from "child_process";
 
 const USE_LOCAL = false;
+const USE_DEGIT = true; // ✅ NEW FLAG
 
 const GITHUB_ZIP =
   "https://github.com/rajmane84/bun-express-starter/archive/refs/heads/main.zip";
@@ -24,7 +26,6 @@ async function downloadZip() {
     throw new Error(`Failed to download: ${res.statusText}`);
   }
 
-  // Convert Web Stream to Node Stream for unzipper
   const nodeStream = Readable.fromWeb(res.body);
 
   return new Promise((resolve, reject) => {
@@ -79,7 +80,29 @@ async function createProject() {
 
   let templatePath;
 
-  if (USE_LOCAL) {
+  // ✅ NEW: DEGIT FLOW
+  if (USE_DEGIT) {
+    console.log("📦 Fetching template using degit...");
+
+    try {
+      const emitter = degit(
+        `rajmane84/bun-express-starter/templates/${template}#main`,
+        {
+          cache: false,
+          force: true,
+          verbose: true,
+        }
+      );
+
+      await emitter.clone(outputPath);
+    } catch (err) {
+      console.error("❌ Failed to fetch template:", err);
+      process.exit(1);
+    }
+  }
+
+  // EXISTING LOGIC (unchanged)
+  else if (USE_LOCAL) {
     const LOCAL_REPO_PATH = path.join(process.cwd(), "../bun-express-starter");
 
     templatePath = path.join(LOCAL_REPO_PATH, "templates", template);
@@ -92,28 +115,34 @@ async function createProject() {
     );
   }
 
-  console.log("Template path: ", templatePath);
+  // Only run copy logic if NOT using degit
+  if (!USE_DEGIT) {
+    console.log("Template path: ", templatePath);
 
-  if (fs.existsSync(templatePath)) {
-    console.log("📄 Files inside:", fs.readdirSync(templatePath));
-    console.log("📄 Files inside src:", fs.readdirSync(`${templatePath}/src`));
-    console.log(
-      "📄 Files inside routes:",
-      fs.readdirSync(`${templatePath}/src/routes`),
-    );
+    if (fs.existsSync(templatePath)) {
+      console.log("📄 Files inside:", fs.readdirSync(templatePath));
+      console.log("📄 Files inside src:", fs.readdirSync(`${templatePath}/src`));
+
+      const routesPath = `${templatePath}/src/routes`;
+      if (fs.existsSync(routesPath)) {
+        console.log("📄 Files inside routes:", fs.readdirSync(routesPath));
+      } else {
+        console.log("⚠️ routes folder not found");
+      }
+    }
+
+    if (!fs.existsSync(templatePath)) {
+      console.error("❌ Template not found:", templatePath);
+      process.exit(1);
+    }
+
+    // Copy files
+    console.log("📁 Copying project files...");
+    copyFolder(templatePath, outputPath);
+
+    // Cleanup
+    fs.rmSync("./temp", { recursive: true, force: true });
   }
-
-  if (!fs.existsSync(templatePath)) {
-    console.error("❌ Template not found:", templatePath);
-    process.exit(1);
-  }
-
-  // Copy files
-  console.log("📁 Copying project files...");
-  copyFolder(templatePath, outputPath);
-
-  // Cleanup
-  fs.rmSync("./temp", { recursive: true, force: true });
 
   // Install dependencies
   console.log("📦 Installing dependencies...");
