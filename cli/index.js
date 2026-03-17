@@ -9,6 +9,7 @@ import { execSync } from "child_process";
 
 const GITHUB_ZIP =
   "https://github.com/rajmane84/bun-express-starter/archive/refs/heads/main.zip";
+
 const REPO_ROOT_FOLDER = "bun-express-starter-main";
 
 // Download GitHub repo ZIP
@@ -32,10 +33,21 @@ async function downloadZip() {
   });
 }
 
-// Copy folder recursively
+// Copy folder (copy contents, not parent folder)
 function copyFolder(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
-  fs.cpSync(src, dest, { recursive: true });
+
+  const items = fs.readdirSync(src);
+
+  for (const item of items) {
+    const srcPath = path.join(src, item);
+    const destPath = path.join(dest, item);
+
+    fs.cpSync(srcPath, destPath, {
+      recursive: true,
+      force: true,
+    });
+  }
 }
 
 async function createProject() {
@@ -53,27 +65,36 @@ async function createProject() {
     default: "myapp",
   });
 
+  const outputPath = path.join(process.cwd(), projectName);
+
+  // Prevent overwrite
+  if (fs.existsSync(outputPath)) {
+    console.error("❌ Folder already exists:", outputPath);
+    process.exit(1);
+  }
+
   // Download repo zip
   await downloadZip();
 
-  // Paths
   const templatePath = path.join(
     process.cwd(),
     `temp/${REPO_ROOT_FOLDER}/templates/${template}`
   );
+
+  if (fs.existsSync(templatePath)) {
+    console.log("📄 Files inside:", fs.readdirSync(templatePath));
+  }
 
   if (!fs.existsSync(templatePath)) {
     console.error("❌ Template not found:", templatePath);
     process.exit(1);
   }
 
-  const outputPath = path.join(process.cwd(), projectName);
-
-  // Copy template to project
+  // Copy files
   console.log("📁 Copying project files...");
   copyFolder(templatePath, outputPath);
 
-  // Cleanup temp folder
+  // Cleanup
   fs.rmSync("./temp", { recursive: true, force: true });
 
   // Install dependencies
@@ -81,21 +102,23 @@ async function createProject() {
   let installedSuccessfully = false;
 
   try {
-    execSync("bun install", { stdio: "inherit", cwd: outputPath });
+    execSync("bun install", {
+      stdio: "inherit",
+      cwd: outputPath,
+    });
     installedSuccessfully = true;
   } catch (error) {
-    console.warn("\n⚠️ Warning: Could not install dependencies automatically.");
+    console.warn("\n⚠️ Could not install dependencies automatically.");
     console.warn(
-      "You might not have 'bun' installed globally yet --> use 'npm i -g bun' to install bun globally."
+      "👉 Install Bun globally: npm i -g bun"
     );
   }
 
   console.log(`\n🎉 Project created successfully!`);
   console.log(`👉 cd ${projectName}`);
 
-  // Dynamically show the next step based on whether install worked
   if (!installedSuccessfully) {
-    console.log(`👉 bun install  <-- Run this first!`);
+    console.log(`👉 bun install`);
   }
 
   console.log(`👉 bun run dev`);

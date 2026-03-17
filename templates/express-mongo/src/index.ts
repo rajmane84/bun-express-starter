@@ -3,8 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './db/connectDB';
 import cookieParser from 'cookie-parser';
-import V1Router from './routes/v1';
 import session from 'express-session';
+import AuthRouter from './routes/v1/auth.route.ts';
+import HealthRouter from './routes/v1/health.route.ts';
+import UserRouter from './routes/v1/user.route.ts';
 
 dotenv.config();
 
@@ -26,7 +28,9 @@ app.use(express.static('public'));
 app.use(cookieParser());
 app.use(session({ secret: 'your-secret', resave: false, saveUninitialized: true }));
 
-app.use('/api/v1', V1Router);
+app.use("/api/v1/auth", AuthRouter);
+app.use("/api/v1/health", HealthRouter);
+app.use("/api/v1/user", UserRouter);
 
 app.listen(PORT, () => {
   console.log(`Server started on PORT: ${PORT}`);
