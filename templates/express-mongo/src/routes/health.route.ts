@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ApiResponse } from '../../utils/apiResponse';
+import { ApiResponse } from '../utils/apiResponse';
 
 const HealthRouter = Router();
 

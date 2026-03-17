@@ -7,6 +7,8 @@ import path from "path";
 import { Readable } from "stream";
 import { execSync } from "child_process";
 
+const USE_LOCAL = false;
+
 const GITHUB_ZIP =
   "https://github.com/rajmane84/bun-express-starter/archive/refs/heads/main.zip";
 
@@ -66,6 +68,8 @@ async function createProject() {
   });
 
   const outputPath = path.join(process.cwd(), projectName);
+  console.log("cwd: ", process.cwd());
+  console.log("outputPath: ", outputPath);
 
   // Prevent overwrite
   if (fs.existsSync(outputPath)) {
@@ -73,16 +77,30 @@ async function createProject() {
     process.exit(1);
   }
 
-  // Download repo zip
-  await downloadZip();
+  let templatePath;
 
-  const templatePath = path.join(
-    process.cwd(),
-    `temp/${REPO_ROOT_FOLDER}/templates/${template}`
-  );
+  if (USE_LOCAL) {
+    const LOCAL_REPO_PATH = path.join(process.cwd(), "../bun-express-starter");
+
+    templatePath = path.join(LOCAL_REPO_PATH, "templates", template);
+  } else {
+    await downloadZip();
+
+    templatePath = path.join(
+      process.cwd(),
+      `temp/${REPO_ROOT_FOLDER}/templates/${template}`,
+    );
+  }
+
+  console.log("Template path: ", templatePath);
 
   if (fs.existsSync(templatePath)) {
     console.log("📄 Files inside:", fs.readdirSync(templatePath));
+    console.log("📄 Files inside src:", fs.readdirSync(`${templatePath}/src`));
+    console.log(
+      "📄 Files inside routes:",
+      fs.readdirSync(`${templatePath}/src/routes`),
+    );
   }
 
   if (!fs.existsSync(templatePath)) {
@@ -109,9 +127,7 @@ async function createProject() {
     installedSuccessfully = true;
   } catch (error) {
     console.warn("\n⚠️ Could not install dependencies automatically.");
-    console.warn(
-      "👉 Install Bun globally: npm i -g bun"
-    );
+    console.warn("👉 Install Bun globally: npm i -g bun");
   }
 
   console.log(`\n🎉 Project created successfully!`);

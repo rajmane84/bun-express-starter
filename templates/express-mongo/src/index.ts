@@ -4,9 +4,9 @@ import dotenv from 'dotenv';
 import { connectDB } from './db/connectDB';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
-import AuthRouter from './routes/v1/auth.route.ts';
-import HealthRouter from './routes/v1/health.route.ts';
-import UserRouter from './routes/v1/user.route.ts';
+import AuthRouter from './routes/auth.route.ts';
+import HealthRouter from './routes/health.route.ts';
+import UserRouter from './routes/user.route.ts';
 
 dotenv.config();
 
