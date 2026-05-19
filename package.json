@@ -1,6 +1,6 @@
 {
   "name": "create-bun-express-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A CLI to scaffold a Bun + Express project",
   "main": "index.js",
   "scripts": {
